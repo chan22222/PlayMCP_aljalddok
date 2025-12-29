@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+// MCP Protocol Version
+const PROTOCOL_VERSION = "2024-11-05";
+
 // MCP Tool Definitions
 const TOOLS = [
   {
@@ -57,16 +60,6 @@ const TOOLS = [
     }
   }
 ];
-
-// MCP Server Info
-const SERVER_INFO = {
-  name: "aljalddok",
-  version: "1.0.0",
-  protocolVersion: "2024-11-05",
-  capabilities: {
-    tools: {}
-  }
-};
 
 // Handle tool execution
 async function executeTool(name: string, args: Record<string, unknown>): Promise<unknown> {
@@ -130,7 +123,7 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 }
 
 // Process JSON-RPC request
-function processRequest(request: { jsonrpc: string; id?: string | number; method: string; params?: unknown }) {
+async function processRequest(request: { jsonrpc: string; id?: string | number; method: string; params?: unknown }): Promise<unknown> {
   const { method, params, id } = request;
 
   switch (method) {
@@ -138,7 +131,16 @@ function processRequest(request: { jsonrpc: string; id?: string | number; method
       return {
         jsonrpc: "2.0",
         id,
-        result: SERVER_INFO
+        result: {
+          protocolVersion: PROTOCOL_VERSION,
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: "aljalddok",
+            version: "1.0.0"
+          }
+        }
       };
 
     case "tools/list":
@@ -150,14 +152,18 @@ function processRequest(request: { jsonrpc: string; id?: string | number; method
 
     case "tools/call": {
       const { name, arguments: args } = params as { name: string; arguments: Record<string, unknown> };
-      return executeTool(name, args || {}).then(result => ({
+      const result = await executeTool(name, args || {});
+      return {
         jsonrpc: "2.0",
         id,
         result
-      }));
+      };
     }
 
     case "notifications/initialized":
+      // Notification - no response needed
+      return null;
+
     case "ping":
       return {
         jsonrpc: "2.0",
@@ -180,21 +186,32 @@ function processRequest(request: { jsonrpc: string; id?: string | number; method
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Mcp-Session-Id');
+  res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // GET request - return server info (for health check / discovery)
   if (req.method === 'GET') {
-    // Return server info for health check
+    res.setHeader('Content-Type', 'application/json');
     return res.status(200).json({
-      name: SERVER_INFO.name,
-      version: SERVER_INFO.version,
+      name: "aljalddok",
+      version: "1.0.0",
+      protocolVersion: PROTOCOL_VERSION,
       description: "AI비서 알잘똑 - 알아서 잘 딱 깔끔하게 도와주는 MCP 서버",
+      capabilities: {
+        tools: {}
+      },
       tools: TOOLS.map(t => ({ name: t.name, description: t.description }))
     });
+  }
+
+  // DELETE request - session termination
+  if (req.method === 'DELETE') {
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -202,16 +219,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Set content type for JSON-RPC response
+    res.setHeader('Content-Type', 'application/json');
+
     const request = req.body;
 
     // Handle batch requests
     if (Array.isArray(request)) {
       const results = await Promise.all(request.map(r => processRequest(r)));
-      return res.status(200).json(results);
+      // Filter out null responses (notifications)
+      const filteredResults = results.filter(r => r !== null);
+      if (filteredResults.length === 0) {
+        return res.status(202).end();
+      }
+      return res.status(200).json(filteredResults);
     }
 
     // Handle single request
     const result = await processRequest(request);
+
+    // Notifications don't get responses
+    if (result === null) {
+      return res.status(202).end();
+    }
+
     return res.status(200).json(result);
 
   } catch (error) {

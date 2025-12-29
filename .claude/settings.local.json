@@ -15,7 +15,8 @@
       "WebSearch",
       "WebFetch(domain:tech.kakao.com)",
       "WebFetch(domain:wikidocs.net)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebFetch(domain:play-mcp-aljalddok.vercel.app)"
     ],
     "deny": [],
     "ask": []
