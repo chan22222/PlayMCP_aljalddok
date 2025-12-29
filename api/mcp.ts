@@ -58,6 +58,29 @@ const TOOLS = [
       },
       required: ["chatContent"]
     }
+  },
+  {
+    name: "SplitBill",
+    description: "더치페이 계산기. 참여자들과 총 금액을 입력하면 1/N 계산해줍니다. (예: '철수, 영희, 민수 / 45000원')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        participants: {
+          type: "array",
+          items: { type: "string" },
+          description: "참여자 이름 목록 (예: ['철수', '영희', '민수'])"
+        },
+        totalAmount: {
+          type: "number",
+          description: "총 금액 (원)"
+        },
+        place: {
+          type: "string",
+          description: "장소/가게 이름 (선택사항)"
+        }
+      },
+      required: ["participants", "totalAmount"]
+    }
   }
 ];
 
@@ -120,6 +143,42 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
               `🔗 공유된 링크: 없음`
           }
         ]
+      };
+    }
+
+    case "SplitBill": {
+      const { participants, totalAmount, place } = args as {
+        participants: string[];
+        totalAmount: number;
+        place?: string
+      };
+
+      const count = participants.length;
+      const perPerson = Math.ceil(totalAmount / count);
+      const remainder = (perPerson * count) - totalAmount;
+
+      // 금액 포맷팅
+      const formatMoney = (n: number) => n.toLocaleString('ko-KR');
+
+      let text = `💸 **더치페이 계산**\n\n`;
+      if (place) {
+        text += `🏪 ${place}\n`;
+      }
+      text += `💰 총 금액: **${formatMoney(totalAmount)}원**\n`;
+      text += `👥 ${count}명\n\n`;
+      text += `---\n\n`;
+      text += `**1인당 ${formatMoney(perPerson)}원**\n\n`;
+
+      participants.forEach((name, i) => {
+        text += `• ${name}: ${formatMoney(perPerson)}원\n`;
+      });
+
+      if (remainder > 0) {
+        text += `\n💡 ${formatMoney(remainder)}원은 ${participants[0]}님이 덜 내면 딱 맞아요!`;
+      }
+
+      return {
+        content: [{ type: "text", text }]
       };
     }
 
