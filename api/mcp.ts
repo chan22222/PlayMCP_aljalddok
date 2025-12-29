@@ -47,13 +47,25 @@ const TOOLS = [
   },
   {
     name: "SummarizeChat",
-    description: "채팅 내용을 요약하고 일정, 할 일, 링크를 추출합니다.",
+    description: "채팅 내용을 분석하여 요약, 일정, 할 일, 공유된 링크를 자동 추출합니다. 그룹채팅 내용을 넣으면 핵심만 정리해줘요.",
     inputSchema: {
       type: "object",
       properties: {
         chatContent: {
           type: "string",
-          description: "요약할 채팅 내용"
+          description: "분석할 채팅 내용 전체"
+        },
+        extractSchedules: {
+          type: "boolean",
+          description: "일정 추출 여부 (기본값: true)"
+        },
+        extractTodos: {
+          type: "boolean",
+          description: "할 일 추출 여부 (기본값: true)"
+        },
+        extractLinks: {
+          type: "boolean",
+          description: "링크 추출 여부 (기본값: true)"
         }
       },
       required: ["chatContent"]
@@ -170,19 +182,120 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
     }
 
     case "SummarizeChat": {
-      const chatContent = args.chatContent as string;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `📋 **채팅 요약**\n\n` +
-              `${chatContent.slice(0, 150)}${chatContent.length > 150 ? '...' : ''}\n\n` +
-              `---\n` +
-              `📅 감지된 일정: 없음\n` +
-              `✅ 할 일: 없음\n` +
-              `🔗 공유된 링크: 없음`
+      const { chatContent, extractSchedules = true, extractTodos = true, extractLinks = true } = args as {
+        chatContent: string;
+        extractSchedules?: boolean;
+        extractTodos?: boolean;
+        extractLinks?: boolean;
+      };
+
+      // 일정 패턴 감지 (날짜/시간 관련)
+      const schedulePatterns = [
+        /(\d{1,2})월\s*(\d{1,2})일/g,
+        /(월|화|수|목|금|토|일)요일/g,
+        /(\d{1,2})시/g,
+        /(오전|오후)\s*(\d{1,2})시/g,
+        /(내일|모레|다음주|이번주)/g,
+      ];
+
+      // 할 일 패턴 감지
+      const todoPatterns = [
+        /(.+?)(해야|해줘|부탁|확인|준비|가져와|보내줘|알려줘)/g,
+        /(.+?)(하기로|하자고|했음)/g,
+      ];
+
+      // URL 패턴 감지
+      const urlPattern = /(https?:\/\/[^\s]+)/g;
+
+      // 추출 결과
+      const schedules: string[] = [];
+      const todos: string[] = [];
+      const links: string[] = [];
+
+      // 일정 추출
+      if (extractSchedules) {
+        const lines = chatContent.split('\n');
+        for (const line of lines) {
+          for (const pattern of schedulePatterns) {
+            if (pattern.test(line)) {
+              const cleanLine = line.replace(/^\[.*?\]/, '').trim();
+              if (cleanLine && !schedules.includes(cleanLine) && cleanLine.length < 100) {
+                schedules.push(cleanLine);
+              }
+              break;
+            }
           }
-        ]
+        }
+      }
+
+      // 할 일 추출
+      if (extractTodos) {
+        const lines = chatContent.split('\n');
+        for (const line of lines) {
+          for (const pattern of todoPatterns) {
+            const match = line.match(pattern);
+            if (match) {
+              const cleanLine = line.replace(/^\[.*?\]/, '').trim();
+              if (cleanLine && !todos.includes(cleanLine) && cleanLine.length < 100) {
+                todos.push(cleanLine);
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      // 링크 추출
+      if (extractLinks) {
+        const urlMatches = chatContent.match(urlPattern);
+        if (urlMatches) {
+          links.push(...urlMatches.slice(0, 5)); // 최대 5개
+        }
+      }
+
+      // 요약 생성 (첫 몇 줄 기반)
+      const lines = chatContent.split('\n').filter(l => l.trim());
+      const summaryLines = lines.slice(0, 3).map(l => l.replace(/^\[.*?\]/, '').trim());
+      const summary = summaryLines.join(' ').slice(0, 200);
+
+      let text = `📋 **채팅 분석 결과**\n\n`;
+      text += `**요약**\n${summary}${summary.length >= 200 ? '...' : ''}\n\n`;
+      text += `---\n\n`;
+
+      // 일정 섹션
+      text += `📅 **감지된 일정** (${schedules.length}건)\n`;
+      if (schedules.length > 0) {
+        schedules.slice(0, 5).forEach((s, i) => {
+          text += `${i + 1}. ${s}\n`;
+        });
+      } else {
+        text += `_없음_\n`;
+      }
+      text += `\n`;
+
+      // 할 일 섹션
+      text += `✅ **할 일** (${todos.length}건)\n`;
+      if (todos.length > 0) {
+        todos.slice(0, 5).forEach((t, i) => {
+          text += `${i + 1}. ${t}\n`;
+        });
+      } else {
+        text += `_없음_\n`;
+      }
+      text += `\n`;
+
+      // 링크 섹션
+      text += `🔗 **공유된 링크** (${links.length}건)\n`;
+      if (links.length > 0) {
+        links.forEach((l, i) => {
+          text += `${i + 1}. ${l}\n`;
+        });
+      } else {
+        text += `_없음_\n`;
+      }
+
+      return {
+        content: [{ type: "text", text }]
       };
     }
 
