@@ -71,16 +71,16 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         content: [
           {
             type: "text",
-            text: `"${keyword}" 검색 결과:\n\n` +
-              `1. 스타벅스 강남R점 - 카페\n` +
-              `   주소: 서울 강남구 강남대로 390\n` +
-              `   평점: 4.2\n\n` +
-              `2. 갓덴스시 강남점 - 초밥\n` +
-              `   주소: 서울 강남구 테헤란로 123\n` +
-              `   평점: 4.5\n\n` +
-              `3. 땀땀 - 베트남음식\n` +
-              `   주소: 서울 강남구 역삼로 45\n` +
-              `   평점: 4.3`
+            text: `🔍 **"${keyword}" 검색 결과**\n\n` +
+              `**1. 스타벅스 강남R점** ☕\n` +
+              `   📍 서울 강남구 강남대로 390\n` +
+              `   ⭐ 4.2\n\n` +
+              `**2. 갓덴스시 강남점** 🍣\n` +
+              `   📍 서울 강남구 테헤란로 123\n` +
+              `   ⭐ 4.5\n\n` +
+              `**3. 땀땀** 🍜\n` +
+              `   📍 서울 강남구 역삼로 45\n` +
+              `   ⭐ 4.3`
           }
         ]
       };
@@ -88,14 +88,19 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 
     case "AddSchedule": {
       const { title, datetime, location } = args as { title: string; datetime: string; location?: string };
+      // datetime 파싱해서 보기좋게 포맷
+      const dateObj = new Date(datetime.replace(' ', 'T'));
+      const dateStr = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      const timeStr = dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+
       return {
         content: [
           {
             type: "text",
-            text: `일정이 등록되었습니다!\n\n` +
-              `- 제목: ${title}\n` +
-              `- 일시: ${datetime}\n` +
-              `- 장소: ${location || '미정'}`
+            text: `📅 **${title}**\n\n` +
+              `🗓 ${dateStr}\n` +
+              `⏰ ${timeStr}\n` +
+              (location ? `📍 ${location}` : '')
           }
         ]
       };
@@ -107,8 +112,9 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         content: [
           {
             type: "text",
-            text: `채팅 요약:\n\n` +
-              `📝 요약: ${chatContent.slice(0, 100)}...\n\n` +
+            text: `📋 **채팅 요약**\n\n` +
+              `${chatContent.slice(0, 150)}${chatContent.length > 150 ? '...' : ''}\n\n` +
+              `---\n` +
               `📅 감지된 일정: 없음\n` +
               `✅ 할 일: 없음\n` +
               `🔗 공유된 링크: 없음`
