@@ -61,14 +61,14 @@ const TOOLS = [
   },
   {
     name: "SplitBill",
-    description: "더치페이 계산기. 참여자들과 총 금액을 입력하면 1/N 계산해줍니다. (예: '철수, 영희, 민수 / 45000원')",
+    description: "더치페이 계산기. 참여자들과 총 금액을 입력하면 1/N 계산해줍니다. '나'는 항상 포함됩니다. (예: '철수, 영희랑 5만원' -> 나 포함 3명)",
     inputSchema: {
       type: "object",
       properties: {
         participants: {
           type: "array",
           items: { type: "string" },
-          description: "참여자 이름 목록 (예: ['철수', '영희', '민수'])"
+          description: "나를 제외한 참여자 이름 목록. 나는 자동 포함됨 (예: ['철수', '영희'])"
         },
         totalAmount: {
           type: "number",
@@ -80,6 +80,20 @@ const TOOLS = [
         }
       },
       required: ["participants", "totalAmount"]
+    }
+  },
+  {
+    name: "GetWeather",
+    description: "현재 날씨 정보를 조회합니다. (예: '서울 날씨', '오늘 날씨 어때?')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        location: {
+          type: "string",
+          description: "지역명 (예: '서울', '강남', '부산')"
+        }
+      },
+      required: ["location"]
     }
   }
 ];
@@ -153,7 +167,9 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         place?: string
       };
 
-      const count = participants.length;
+      // 나를 포함한 전체 참여자
+      const allParticipants = ['나', ...participants];
+      const count = allParticipants.length;
       const perPerson = Math.ceil(totalAmount / count);
       const remainder = (perPerson * count) - totalAmount;
 
@@ -165,20 +181,45 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         text += `🏪 ${place}\n`;
       }
       text += `💰 총 금액: **${formatMoney(totalAmount)}원**\n`;
-      text += `👥 ${count}명\n\n`;
+      text += `👥 ${count}명 (나 포함)\n\n`;
       text += `---\n\n`;
       text += `**1인당 ${formatMoney(perPerson)}원**\n\n`;
 
-      participants.forEach((name, i) => {
+      allParticipants.forEach((name) => {
         text += `• ${name}: ${formatMoney(perPerson)}원\n`;
       });
 
       if (remainder > 0) {
-        text += `\n💡 ${formatMoney(remainder)}원은 ${participants[0]}님이 덜 내면 딱 맞아요!`;
+        text += `\n💡 ${formatMoney(remainder)}원은 누군가 덜 내면 딱 맞아요!`;
       }
 
       return {
         content: [{ type: "text", text }]
+      };
+    }
+
+    case "GetWeather": {
+      const { location } = args as { location: string };
+
+      // Mock 날씨 데이터 (실제로는 API 연동 필요)
+      const weatherData = [
+        { condition: '맑음', icon: '☀️', temp: 3, feel: -2 },
+        { condition: '흐림', icon: '☁️', temp: 1, feel: -4 },
+        { condition: '눈', icon: '🌨️', temp: -3, feel: -8 },
+        { condition: '비', icon: '🌧️', temp: 5, feel: 1 },
+      ];
+      const weather = weatherData[Math.floor(Math.random() * weatherData.length)];
+
+      return {
+        content: [{
+          type: "text",
+          text: `${weather.icon} **${location} 날씨**\n\n` +
+            `🌡️ 현재 기온: ${weather.temp}°C\n` +
+            `🤒 체감 온도: ${weather.feel}°C\n` +
+            `📝 ${weather.condition}\n\n` +
+            `---\n` +
+            `오늘 하루도 좋은 하루 되세요!`
+        }]
       };
     }
 
