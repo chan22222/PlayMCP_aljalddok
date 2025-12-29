@@ -14,7 +14,8 @@
       "WebFetch(domain:playmcp.kakao.com)",
       "WebSearch",
       "WebFetch(domain:tech.kakao.com)",
-      "WebFetch(domain:wikidocs.net)"
+      "WebFetch(domain:wikidocs.net)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
