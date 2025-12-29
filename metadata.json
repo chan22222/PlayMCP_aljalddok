@@ -1,0 +1,5 @@
+{
+  "name": "KakaoTalk MCP Assistant",
+  "description": "A simulation of a KakaoTalk Model Context Protocol (MCP) agent that manages schedules, summarizes group chats, and extracts action items using Gemini AI.",
+  "requestFramePermissions": []
+}
