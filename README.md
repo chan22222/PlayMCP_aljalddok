@@ -1,6 +1,6 @@
-# KakaoTalk MCP Assistant
+# AI비서 알잘똑
 
-KakaoTalk Model Context Protocol (MCP) 에이전트 시뮬레이션입니다. Gemini AI를 활용하여 일정 관리, 그룹 채팅 요약, 액션 아이템 추출 기능을 제공합니다.
+알아서 잘 딱 깔끔하게 도와주는 AI 비서! Gemini AI를 활용하여 일정 관리, 맛집 검색, 그룹 채팅 요약, 할 일 추출 등 다양한 기능을 제공합니다.
 
 ## Run Locally
 

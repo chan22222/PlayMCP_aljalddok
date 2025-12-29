@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ chats, activeChatId, onSelectChat }) 
       <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h1 className="font-bold text-xl text-gray-800 flex items-center gap-2">
           <MessageCircle className="w-6 h-6 text-yellow-500 fill-current" />
-          KakaoTalk MCP
+          알잘똑
         </h1>
       </div>
       

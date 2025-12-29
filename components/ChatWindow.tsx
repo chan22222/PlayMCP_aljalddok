@@ -186,7 +186,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onSendMessage, onAnalyze,
         <div className="flex items-center gap-3">
             {isFeedMode ? (
                 // Feed Mode Header Actions
-                 <span className="px-2 py-1 bg-gray-100 text-xs text-gray-500 rounded font-mono">MCP ACTIVATED</span>
+                 <span className="px-2 py-1 bg-yellow-100 text-xs text-yellow-700 rounded font-medium">알잘똑 ON</span>
             ) : (
                 // Standard Chat Header Actions
                 <>
@@ -203,7 +203,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onSendMessage, onAnalyze,
                     }`}
                 >
                     <Bot size={16} />
-                    {isAnalyzing ? '분석 중...' : 'MCP 분석'}
+                    {isAnalyzing ? '분석 중...' : '알잘똑 분석'}
                 </button>
                 </>
             )}
@@ -259,7 +259,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onSendMessage, onAnalyze,
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isFeedMode ? "AI 비서에게 요청하세요 (예: 강남역 맛집 찾아줘)" : "메시지를 입력하세요"}
+            placeholder={isFeedMode ? "알잘똑에게 물어보세요 (예: 강남역 맛집 찾아줘)" : "메시지를 입력하세요"}
             className="flex-1 bg-transparent border-none resize-none focus:ring-0 text-sm max-h-32 min-h-[24px] py-2 px-2"
             rows={1}
             style={{ height: 'auto', minHeight: '40px' }} 

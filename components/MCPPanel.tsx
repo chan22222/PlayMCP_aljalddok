@@ -14,7 +14,7 @@ const MCPPanel: React.FC<MCPPanelProps> = ({ data, isLoading, onRefresh }) => {
       <div className="p-4 bg-white border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-700">
           <BrainCircuit className="w-5 h-5 text-indigo-600" />
-          <h2 className="font-bold text-sm uppercase tracking-wide">MCP Intelligence</h2>
+          <h2 className="font-bold text-sm uppercase tracking-wide">알잘똑 인사이트</h2>
         </div>
         <button 
             onClick={onRefresh}
