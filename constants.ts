@@ -35,13 +35,13 @@ export const INITIAL_CHATS: ChatRoom[] = [
   },
   {
     id: '3',
-    name: '나와의 채팅 (AI 비서)',
+    name: '알잘똑 AI',
     type: 'direct',
     participants: 1,
     unreadCount: 0,
     lastMessageTime: '방금',
     messages: [
-      { id: 'ai1', sender: 'AI 비서', text: '안녕하세요! 카카오톡 MCP 비서입니다. 일정 관리나 채팅 요약이 필요하면 말씀해주세요.', timestamp: '오전 8:00', type: UserType.AI, avatar: 'https://picsum.photos/40/40' },
+      { id: 'ai1', sender: '알잘똑', text: '안녕하세요! AI비서 알잘똑이에요. 일정 관리, 맛집 검색, 채팅 요약 등 뭐든 물어보세요!', timestamp: '오전 8:00', type: UserType.AI, avatar: 'https://picsum.photos/40/40' },
     ]
   }
 ];

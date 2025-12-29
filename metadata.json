@@ -1,5 +1,5 @@
 {
-  "name": "KakaoTalk MCP Assistant",
-  "description": "A simulation of a KakaoTalk Model Context Protocol (MCP) agent that manages schedules, summarizes group chats, and extracts action items using Gemini AI.",
+  "name": "AI비서 알잘똑",
+  "description": "알아서 잘 딱 깔끔하게 도와주는 AI 비서! 일정 관리, 맛집 검색, 채팅 요약, 할 일 추출 등 다양한 기능을 제공합니다.",
   "requestFramePermissions": []
 }

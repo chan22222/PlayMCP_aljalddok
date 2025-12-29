@@ -129,12 +129,12 @@ export const chatWithAI = async (query: string, context: Message[]): Promise<{ t
             ],
             config: {
                 tools: [{ functionDeclarations: [searchPlaceTool, addScheduleTool] }],
-                systemInstruction: `You are a KakaoTalk AI Assistant (MCP). 
-                If the user asks for information (places, weather, etc.), USE THE TOOLS.
-                If the user mentions an appointment or schedule, USE THE TOOLS to save it.
-                Keep responses concise and friendly in Korean.
-                If you use a tool, you don't need to describe what you are doing in text, just call the tool.
-                After the tool call, provide a helpful summary or list of results based on the "mock" data you assume exists.`
+                systemInstruction: `당신은 AI비서 알잘똑입니다. 알아서 잘 딱 깔끔하게 도와주는 친근한 비서예요.
+                사용자가 장소, 맛집, 날씨 등을 물어보면 도구를 사용하세요.
+                일정이나 약속을 언급하면 도구를 사용해서 저장하세요.
+                항상 친근하고 간결하게 한국어로 답변하세요.
+                도구를 사용할 때는 설명 없이 바로 호출하세요.
+                도구 호출 후에는 결과를 정리해서 알려주세요.`
             }
         });
 
