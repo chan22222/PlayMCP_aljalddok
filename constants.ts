@@ -41,7 +41,7 @@ export const INITIAL_CHATS: ChatRoom[] = [
     unreadCount: 0,
     lastMessageTime: '방금',
     messages: [
-      { id: 'ai1', sender: '알잘똑', text: '안녕하세요! AI비서 알잘똑이에요. 일정 관리, 맛집 검색, 채팅 요약 등 뭐든 물어보세요!', timestamp: '오전 8:00', type: UserType.AI, avatar: 'https://picsum.photos/40/40' },
+      { id: 'ai1', sender: '알잘똑', text: '안녕하세요! AI비서 알잘똑이에요. 일정 관리, 맛집 검색, 채팅 요약 등 뭐든 물어보세요!', timestamp: '오전 8:00', type: UserType.AI, avatar: '/logo.png' },
     ]
   }
 ];
