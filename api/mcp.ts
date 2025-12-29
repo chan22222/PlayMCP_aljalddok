@@ -95,6 +95,32 @@ const TOOLS = [
       },
       required: ["location"]
     }
+  },
+  {
+    name: "SaveLink",
+    description: "링크를 저장합니다. 대화에서 공유된 URL을 메모와 함께 저장해요. (예: '이 링크 저장해줘', 'URL 북마크해줘')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "저장할 URL"
+        },
+        title: {
+          type: "string",
+          description: "링크 제목 (선택사항)"
+        },
+        memo: {
+          type: "string",
+          description: "메모 (선택사항)"
+        },
+        category: {
+          type: "string",
+          description: "카테고리 (예: '맛집', '쇼핑', '뉴스', '업무')"
+        }
+      },
+      required: ["url"]
+    }
   }
 ];
 
@@ -220,6 +246,51 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
             `---\n` +
             `오늘 하루도 좋은 하루 되세요!`
         }]
+      };
+    }
+
+    case "SaveLink": {
+      const { url, title, memo, category } = args as {
+        url: string;
+        title?: string;
+        memo?: string;
+        category?: string;
+      };
+
+      // URL에서 도메인 추출
+      let domain = '';
+      try {
+        domain = new URL(url).hostname.replace('www.', '');
+      } catch {
+        domain = url;
+      }
+
+      // 카테고리별 아이콘
+      const categoryIcons: Record<string, string> = {
+        '맛집': '🍽️',
+        '쇼핑': '🛒',
+        '뉴스': '📰',
+        '업무': '💼',
+        '여행': '✈️',
+        '영상': '🎬',
+      };
+      const icon = category ? (categoryIcons[category] || '🔖') : '🔖';
+
+      let text = `${icon} **링크 저장 완료!**\n\n`;
+      if (title) {
+        text += `📌 ${title}\n`;
+      }
+      text += `🔗 ${url}\n`;
+      text += `🌐 ${domain}\n`;
+      if (category) {
+        text += `📁 ${category}\n`;
+      }
+      if (memo) {
+        text += `\n💬 "${memo}"`;
+      }
+
+      return {
+        content: [{ type: "text", text }]
       };
     }
 
