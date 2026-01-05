@@ -174,28 +174,6 @@ const TOOLS = [
       },
       required: ["targetDate"]
     }
-  },
-  {
-    name: "ConvertCurrency",
-    description: "환율 계산기. 원화와 외화를 변환해줍니다. (예: '100달러 얼마야?', '10만원 엔화로')",
-    inputSchema: {
-      type: "object",
-      properties: {
-        amount: {
-          type: "number",
-          description: "변환할 금액"
-        },
-        fromCurrency: {
-          type: "string",
-          description: "원래 통화 (예: 'KRW', 'USD', 'JPY', 'EUR')"
-        },
-        toCurrency: {
-          type: "string",
-          description: "변환할 통화 (예: 'KRW', 'USD', 'JPY', 'EUR')"
-        }
-      },
-      required: ["amount", "fromCurrency", "toCurrency"]
-    }
   }
 ];
 
@@ -547,58 +525,6 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         text += `✅ **D+${Math.abs(diffDays)}**\n`;
         text += `${Math.abs(diffDays)}일 지났습니다.`;
       }
-
-      return {
-        content: [{ type: "text", text }]
-      };
-    }
-
-    case "ConvertCurrency": {
-      const { amount, fromCurrency, toCurrency } = args as {
-        amount: number;
-        fromCurrency: string;
-        toCurrency: string;
-      };
-
-      // 환율 데이터 (KRW 기준, 실제로는 API 연동 필요)
-      const rates: Record<string, number> = {
-        'KRW': 1,
-        'USD': 1450,
-        'JPY': 9.5,
-        'EUR': 1550,
-        'CNY': 200,
-        'GBP': 1850,
-      };
-
-      const from = fromCurrency.toUpperCase();
-      const to = toCurrency.toUpperCase();
-
-      if (!rates[from] || !rates[to]) {
-        return {
-          content: [{ type: "text", text: `❌ 지원하지 않는 통화입니다.\n지원: KRW, USD, JPY, EUR, CNY, GBP` }]
-        };
-      }
-
-      // 변환: from -> KRW -> to
-      const inKRW = amount * rates[from];
-      const result = inKRW / rates[to];
-
-      // 통화 기호
-      const symbols: Record<string, string> = {
-        'KRW': '₩', 'USD': '$', 'JPY': '¥', 'EUR': '€', 'CNY': '¥', 'GBP': '£'
-      };
-
-      const formatNum = (n: number) => {
-        if (n >= 1000) return n.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
-        return n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
-      };
-
-      let text = `💱 **환율 계산**\n\n`;
-      text += `${symbols[from] || ''}${formatNum(amount)} ${from}\n`;
-      text += `⬇️\n`;
-      text += `**${symbols[to] || ''}${formatNum(result)} ${to}**\n\n`;
-      text += `---\n`;
-      text += `📊 기준: 1 ${from} = ${formatNum(rates[from] / rates[to])} ${to}`;
 
       return {
         content: [{ type: "text", text }]
