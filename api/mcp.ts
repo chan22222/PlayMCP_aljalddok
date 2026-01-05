@@ -135,30 +135,66 @@ const TOOLS = [
     }
   },
   {
-    name: "SendKakaoTalk",
-    description: "카카오톡 나에게 보내기. 메모나 링크를 내 카톡으로 전송해요. (예: '나한테 메모 보내줘', '이 링크 카톡으로 보내줘')",
+    name: "RandomPick",
+    description: "랜덤 선택기. 여러 옵션 중 하나를 무작위로 골라줍니다. (예: '점심 뭐 먹지?', '누가 발표할지 정해줘')",
     inputSchema: {
       type: "object",
       properties: {
-        message: {
-          type: "string",
-          description: "보낼 메시지 내용"
+        options: {
+          type: "array",
+          items: { type: "string" },
+          description: "선택할 옵션들 (예: ['짜장면', '짬뽕', '볶음밥'])"
         },
-        messageType: {
-          type: "string",
-          enum: ["text", "link"],
-          description: "메시지 유형: text(일반 텍스트), link(링크 포함)"
+        count: {
+          type: "number",
+          description: "뽑을 개수 (기본값: 1)"
         },
-        linkUrl: {
+        title: {
           type: "string",
-          description: "링크 URL (messageType이 'link'일 때 사용)"
-        },
-        linkTitle: {
-          type: "string",
-          description: "링크 제목 (messageType이 'link'일 때 사용)"
+          description: "무엇을 고르는지 (예: '오늘 점심', '발표자')"
         }
       },
-      required: ["message"]
+      required: ["options"]
+    }
+  },
+  {
+    name: "Dday",
+    description: "D-day 계산기. 특정 날짜까지 며칠 남았는지 계산해줍니다. (예: '시험 D-day', '여행까지 며칠?')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        targetDate: {
+          type: "string",
+          description: "목표 날짜 (예: '2025-02-14', '2025-12-25')"
+        },
+        eventName: {
+          type: "string",
+          description: "이벤트 이름 (예: '발렌타인데이', '크리스마스', '기말고사')"
+        }
+      },
+      required: ["targetDate"]
+    }
+  },
+  {
+    name: "ConvertCurrency",
+    description: "환율 계산기. 원화와 외화를 변환해줍니다. (예: '100달러 얼마야?', '10만원 엔화로')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        amount: {
+          type: "number",
+          description: "변환할 금액"
+        },
+        fromCurrency: {
+          type: "string",
+          description: "원래 통화 (예: 'KRW', 'USD', 'JPY', 'EUR')"
+        },
+        toCurrency: {
+          type: "string",
+          description: "변환할 통화 (예: 'KRW', 'USD', 'JPY', 'EUR')"
+        }
+      },
+      required: ["amount", "fromCurrency", "toCurrency"]
     }
   }
 ];
@@ -434,40 +470,135 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
       };
     }
 
-    case "SendKakaoTalk": {
-      const { message, messageType = 'text', linkUrl, linkTitle } = args as {
-        message: string;
-        messageType?: 'text' | 'link';
-        linkUrl?: string;
-        linkTitle?: string;
+    case "RandomPick": {
+      const { options, count = 1, title } = args as {
+        options: string[];
+        count?: number;
+        title?: string;
       };
 
-      // 현재 시간
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+      if (options.length === 0) {
+        return {
+          content: [{ type: "text", text: "❌ 선택할 옵션을 입력해주세요!" }]
+        };
+      }
 
-      let text = `💬 **카카오톡 나에게 보내기**\n\n`;
-      text += `⏰ 전송 시간: ${timeStr}\n\n`;
+      // 랜덤 선택
+      const shuffled = [...options].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, Math.min(count, options.length));
+
+      let text = `🎲 **랜덤 선택 결과**\n\n`;
+      if (title) {
+        text += `📌 ${title}\n\n`;
+      }
       text += `---\n\n`;
 
-      // 메시지 유형별 처리
-      if (messageType === 'link' && linkUrl) {
-        text += `📎 **링크 메시지**\n`;
-        if (linkTitle) {
-          text += `📌 ${linkTitle}\n`;
-        }
-        text += `🔗 ${linkUrl}\n\n`;
-        text += `💭 ${message}\n`;
+      if (picked.length === 1) {
+        text += `🎯 **${picked[0]}**\n`;
       } else {
-        text += `💭 ${message}\n`;
+        picked.forEach((item, i) => {
+          text += `${i + 1}. **${item}**\n`;
+        });
       }
 
       text += `\n---\n`;
-      text += `✅ 내 채팅방으로 메시지가 전송되었습니다!`;
+      text += `📋 전체 옵션: ${options.join(', ')}`;
 
-      // TODO: 카카오 REST API 연동
-      // POST https://kapi.kakao.com/v2/api/talk/memo/default/send
-      // 필요: access_token (OAuth 인증)
+      return {
+        content: [{ type: "text", text }]
+      };
+    }
+
+    case "Dday": {
+      const { targetDate, eventName } = args as {
+        targetDate: string;
+        eventName?: string;
+      };
+
+      const target = new Date(targetDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      target.setHours(0, 0, 0, 0);
+
+      const diffTime = target.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      const targetStr = target.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short'
+      });
+
+      let text = `📅 **D-day 계산**\n\n`;
+      if (eventName) {
+        text += `🎯 ${eventName}\n`;
+      }
+      text += `📆 ${targetStr}\n\n`;
+      text += `---\n\n`;
+
+      if (diffDays > 0) {
+        text += `⏳ **D-${diffDays}**\n`;
+        text += `${diffDays}일 남았습니다!`;
+      } else if (diffDays === 0) {
+        text += `🎉 **D-Day!**\n`;
+        text += `오늘이에요!`;
+      } else {
+        text += `✅ **D+${Math.abs(diffDays)}**\n`;
+        text += `${Math.abs(diffDays)}일 지났습니다.`;
+      }
+
+      return {
+        content: [{ type: "text", text }]
+      };
+    }
+
+    case "ConvertCurrency": {
+      const { amount, fromCurrency, toCurrency } = args as {
+        amount: number;
+        fromCurrency: string;
+        toCurrency: string;
+      };
+
+      // 환율 데이터 (KRW 기준, 실제로는 API 연동 필요)
+      const rates: Record<string, number> = {
+        'KRW': 1,
+        'USD': 1450,
+        'JPY': 9.5,
+        'EUR': 1550,
+        'CNY': 200,
+        'GBP': 1850,
+      };
+
+      const from = fromCurrency.toUpperCase();
+      const to = toCurrency.toUpperCase();
+
+      if (!rates[from] || !rates[to]) {
+        return {
+          content: [{ type: "text", text: `❌ 지원하지 않는 통화입니다.\n지원: KRW, USD, JPY, EUR, CNY, GBP` }]
+        };
+      }
+
+      // 변환: from -> KRW -> to
+      const inKRW = amount * rates[from];
+      const result = inKRW / rates[to];
+
+      // 통화 기호
+      const symbols: Record<string, string> = {
+        'KRW': '₩', 'USD': '$', 'JPY': '¥', 'EUR': '€', 'CNY': '¥', 'GBP': '£'
+      };
+
+      const formatNum = (n: number) => {
+        if (n >= 1000) return n.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+        return n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+      };
+
+      let text = `💱 **환율 계산**\n\n`;
+      text += `${symbols[from] || ''}${formatNum(amount)} ${from}\n`;
+      text += `⬇️\n`;
+      text += `**${symbols[to] || ''}${formatNum(result)} ${to}**\n\n`;
+      text += `---\n`;
+      text += `📊 기준: 1 ${from} = ${formatNum(rates[from] / rates[to])} ${to}`;
 
       return {
         content: [{ type: "text", text }]
