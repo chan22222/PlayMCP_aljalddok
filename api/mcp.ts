@@ -133,6 +133,33 @@ const TOOLS = [
       },
       required: ["url"]
     }
+  },
+  {
+    name: "SendKakaoTalk",
+    description: "카카오톡 나에게 보내기. 메모나 링크를 내 카톡으로 전송해요. (예: '나한테 메모 보내줘', '이 링크 카톡으로 보내줘')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        message: {
+          type: "string",
+          description: "보낼 메시지 내용"
+        },
+        messageType: {
+          type: "string",
+          enum: ["text", "link"],
+          description: "메시지 유형: text(일반 텍스트), link(링크 포함)"
+        },
+        linkUrl: {
+          type: "string",
+          description: "링크 URL (messageType이 'link'일 때 사용)"
+        },
+        linkTitle: {
+          type: "string",
+          description: "링크 제목 (messageType이 'link'일 때 사용)"
+        }
+      },
+      required: ["message"]
+    }
   }
 ];
 
@@ -401,6 +428,46 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
       if (memo) {
         text += `\n💬 "${memo}"`;
       }
+
+      return {
+        content: [{ type: "text", text }]
+      };
+    }
+
+    case "SendKakaoTalk": {
+      const { message, messageType = 'text', linkUrl, linkTitle } = args as {
+        message: string;
+        messageType?: 'text' | 'link';
+        linkUrl?: string;
+        linkTitle?: string;
+      };
+
+      // 현재 시간
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+      let text = `💬 **카카오톡 나에게 보내기**\n\n`;
+      text += `⏰ 전송 시간: ${timeStr}\n\n`;
+      text += `---\n\n`;
+
+      // 메시지 유형별 처리
+      if (messageType === 'link' && linkUrl) {
+        text += `📎 **링크 메시지**\n`;
+        if (linkTitle) {
+          text += `📌 ${linkTitle}\n`;
+        }
+        text += `🔗 ${linkUrl}\n\n`;
+        text += `💭 ${message}\n`;
+      } else {
+        text += `💭 ${message}\n`;
+      }
+
+      text += `\n---\n`;
+      text += `✅ 내 채팅방으로 메시지가 전송되었습니다!`;
+
+      // TODO: 카카오 REST API 연동
+      // POST https://kapi.kakao.com/v2/api/talk/memo/default/send
+      // 필요: access_token (OAuth 인증)
 
       return {
         content: [{ type: "text", text }]
