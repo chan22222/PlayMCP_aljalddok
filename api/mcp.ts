@@ -675,7 +675,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       capabilities: {
         tools: {}
       },
-      tools: TOOLS.map(t => ({ name: t.name, description: t.description }))
+      tools: TOOLS
     });
   }
 
