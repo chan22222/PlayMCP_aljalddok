@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // MCP Protocol Version
-const PROTOCOL_VERSION = "2024-11-05";
+const PROTOCOL_VERSION = "2025-03-26";
 
 // MCP Tool Definitions
 const TOOLS = [
@@ -21,6 +21,13 @@ const TOOLS = [
         }
       },
       required: ["keyword"]
+    },
+    annotations: {
+      title: "장소 검색",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
     }
   },
   {
@@ -43,6 +50,13 @@ const TOOLS = [
         }
       },
       required: ["title", "datetime"]
+    },
+    annotations: {
+      title: "일정 추가",
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
     }
   },
   {
@@ -69,6 +83,13 @@ const TOOLS = [
         }
       },
       required: ["chatContent"]
+    },
+    annotations: {
+      title: "채팅 요약",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
     }
   },
   {
@@ -92,6 +113,13 @@ const TOOLS = [
         }
       },
       required: ["participants", "totalAmount"]
+    },
+    annotations: {
+      title: "더치페이 계산",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
     }
   },
   {
@@ -106,6 +134,13 @@ const TOOLS = [
         }
       },
       required: ["location"]
+    },
+    annotations: {
+      title: "날씨 조회",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true
     }
   },
   {
@@ -132,6 +167,13 @@ const TOOLS = [
         }
       },
       required: ["url"]
+    },
+    annotations: {
+      title: "링크 저장",
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
     }
   },
   {
@@ -155,6 +197,13 @@ const TOOLS = [
         }
       },
       required: ["options"]
+    },
+    annotations: {
+      title: "랜덤 선택",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
     }
   },
   {
@@ -173,6 +222,13 @@ const TOOLS = [
         }
       },
       required: ["targetDate"]
+    },
+    annotations: {
+      title: "D-day 계산",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
     }
   }
 ];
