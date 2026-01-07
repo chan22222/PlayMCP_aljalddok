@@ -6,24 +6,6 @@ const PROTOCOL_VERSION = "2025-03-26";
 // MCP Tool Definitions
 const TOOLS = [
   {
-    name: "SearchPlaceByKeyword",
-    description: "키워드로 맛집, 카페, 장소를 검색합니다. (예: '강남역 맛집', '홍대 카페')",
-    inputSchema: {
-      type: "object",
-      properties: {
-        keyword: {
-          type: "string",
-          description: "검색 키워드 (예: '강남역 맛집')"
-        },
-        region: {
-          type: "string",
-          description: "검색 지역 (선택사항)"
-        }
-      },
-      required: ["keyword"]
-    }
-  },
-  {
     name: "AddSchedule",
     description: "일정을 캘린더에 추가합니다.",
     inputSchema: {
@@ -180,28 +162,6 @@ const TOOLS = [
 // Handle tool execution
 async function executeTool(name: string, args: Record<string, unknown>): Promise<unknown> {
   switch (name) {
-    case "SearchPlaceByKeyword": {
-      const keyword = args.keyword as string;
-      // Mock response - in production, call actual API
-      return {
-        content: [
-          {
-            type: "text",
-            text: `🔍 **"${keyword}" 검색 결과**\n\n` +
-              `**1. 스타벅스 강남R점** ☕\n` +
-              `   📍 서울 강남구 강남대로 390\n` +
-              `   ⭐ 4.2\n\n` +
-              `**2. 갓덴스시 강남점** 🍣\n` +
-              `   📍 서울 강남구 테헤란로 123\n` +
-              `   ⭐ 4.5\n\n` +
-              `**3. 땀땀** 🍜\n` +
-              `   📍 서울 강남구 역삼로 45\n` +
-              `   ⭐ 4.3`
-          }
-        ]
-      };
-    }
-
     case "AddSchedule": {
       const { title, datetime, location } = args as { title: string; datetime: string; location?: string };
       // datetime 파싱해서 보기좋게 포맷
